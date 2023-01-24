@@ -1,0 +1,69 @@
+const Address = require('../models/address');
+
+module.exports = {
+
+    findByUser(req, res) {
+        const id_user = req.params.id_user;
+        Address.findByUser(id_user, (err, data) => {
+            if (err) {
+                return res.status(501).json({
+                    success: false,
+                    message: 'Hubo un error al tratar de obtener las direcciones',
+                    error: err
+                });
+            }
+
+            return res.status(201).json(data);
+        })
+    },
+    delete(req, res){
+       console.log('req',req.params.id_address);
+       Address.delete(req.params.id_address, (err)=>{
+        if (err) {
+            return res.status(501).json({
+                data : null,
+                success: false,
+                message: 'Hubo un error al borrar',
+                error: err
+            });
+        }
+
+        return res.status(201).json({
+            data: null,
+            success: true,
+            message: 'se borro con exito',
+             // EL ID DE LA NUEVA DIRECCION
+        });
+
+
+
+       })
+
+    },
+
+    create(req, res) {
+
+        const address = req.body;
+        console.log('ADDRESS: ', address);
+
+        Address.create(address, (err, id) => {
+
+            if (err) {
+                return res.status(501).json({
+                    success: false,
+                    message: 'Hubo un error con el registro de la direccion',
+                    error: err
+                });
+            }
+
+            return res.status(201).json({
+                success: true,
+                message: 'La direccion se creo correctamente',
+                data: `${id}` // EL ID DE LA NUEVA DIRECCION
+            });
+
+        });
+
+    },
+
+}
