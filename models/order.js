@@ -9,13 +9,17 @@ Order.create = (order, result) => {
         orders(
             id_client,
             id_address,
+            id_wallet_history,
+            lat,
+            lng,
             status,
+            timestamp,
             created_at,
             evidencia,
             cantidad_aprox,
             nombre_evidencia
              )
-    VALUES(?, ?, ?, ?, ?, ?, ?)
+    VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     db.query(
@@ -23,7 +27,11 @@ Order.create = (order, result) => {
         [
             order.id_client,
             order.id_address,
+            order.id_wallet_history,
+            order.lat,
+            order.lng,
             'EN ESPERA', 
+            Date.now(),
             new Date(),
             order.evidencia,
             order.cantidad_aprox,
@@ -34,11 +42,178 @@ Order.create = (order, result) => {
         (err, res) => {
             if (err) {
                 console.log('Error:', err);
+                console.log('timestap',Date.now);
             
                 result(err, null);
             }
             else {
                 console.log('Id de la nueva orden:', res.insertId);
+                console.log('timestap',Date.now);
+                result(null, res.insertId);
+            }
+        }
+
+    )
+
+}
+
+Order.create = (order, result) => {
+
+    const sql = `
+    INSERT INTO
+        orders(
+            id_client,
+            id_address,
+            id_wallet_history,
+            lat,
+            lng,
+            status,
+            timestamp,
+            created_at,
+            evidencia,
+            cantidad_aprox,
+            nombre_evidencia
+             )
+    VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    db.query(
+        sql, 
+        [
+            order.id_client,
+            order.id_address,
+            order.id_wallet_history,
+            order.lat,
+            order.lng,
+            'EN ESPERA', 
+            Date.now(),
+            new Date(),
+            order.evidencia,
+            order.cantidad_aprox,
+            order.nombre_evidencia,
+        
+    
+        ],
+        (err, res) => {
+            if (err) {
+                console.log('Error:', err);
+                console.log('timestap',Date.now);
+            
+                result(err, null);
+            }
+            else {
+                console.log('Id de la nueva orden:', res.insertId);
+                console.log('timestap',Date.now);
+                result(null, res.insertId);
+            }
+        }
+
+    )
+
+}
+Order.AceptarOrdenEmpresa = (id_order, id_empresa,result) => {
+    const sql = `
+    UPDATE
+        orders
+    SET
+        id_empresa = ?,
+        status = ?
+    WHERE
+        id = ?
+    `;
+
+    db.query(
+        sql, 
+        [    
+            id_empresa,
+            'ACEPTADO',
+            id_order
+        ],
+        (err, res) => {
+            if (err) {
+                console.log('Error:', err);
+                result(err, null);
+            }
+            else {
+                result(null, id_order);
+            }
+        }
+    )
+}
+
+Order.RechazarOrdenEmpresa = (id_order, id_empresa,result) => {
+    const sql = `
+    UPDATE
+        orders
+    SET
+        id_empresa = ?,
+        status = ?
+    WHERE
+        id = ?
+    `;
+
+    db.query(
+        sql, 
+        [    
+            id_empresa,
+            'RECHAZADA',
+            id_order
+        ],
+        (err, res) => {
+            if (err) {
+                console.log('Error:', err);
+                result(err, null);
+            }
+            else {
+                result(null, id_order);
+            }
+        }
+    )
+}
+
+
+
+
+
+
+Order.createCentros = (order, result) => {
+
+    const sql = `
+    INSERT INTO
+        solicitudes_centros (
+            id_client,
+            status,
+            evidencia,
+            timestamp,
+            created_at,
+            nombre_evidencia,
+            cantidad_aprox
+             )
+    VALUES(?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    db.query(
+        sql, 
+        [
+            order.id_client,
+            'EN ESPERA', 
+            order.evidencia,
+            Date.now(),
+            new Date(),  
+            order.nombre_evidencia,
+            order.cantidad_aprox,
+   
+        ],
+        (err, res) => {
+            if (err) {
+                console.log('Error:', err);
+                console.log('timestap',Date.now);
+            
+                result(err, null);
+            }
+            else {
+                console.log('Id de la nueva orden:', res.insertId);
+                console.log('timestap',Date.now);
                 result(null, res.insertId);
             }
         }
@@ -122,6 +297,142 @@ Order.findByOrder = (status ,result) => {
     )
     
 }
+
+
+Order.findSolicitudesCentros = (status ,result) => {
+    const sql = `
+    SELECT
+        CONVERT(O.id, char) AS id,
+        CONVERT(O.id_client, char) AS id_client,
+        CONVERT(O.id_empresa, char) AS id_empresa,
+        O.status
+        O.evidencia,
+        O.timestamp,
+        O.created_at,
+        O.nombre_evidencia,
+        O.nombre_evidencia,
+        O.cantidad_aprox,
+        JSON_OBJECT(
+            'id', CONVERT(U.id, char),
+            'name', U.name,
+            'lastname', U.lastname,
+            'image', U.image,
+            'phone', U.phone
+        ) AS client,
+        JSON_OBJECT(
+            'id', CONVERT(U2.id, char),
+            'name', U2.name,
+            'lastname', U2.lastname,
+            'image', U2.image,
+            'phone', U2.phone
+        ) AS empresa
+    FROM 
+        solicitudes_centros AS O
+    INNER JOIN
+        users AS U
+    ON
+        U.id = O.id_client
+	LEFT JOIN
+		users AS U2
+	ON
+		U2.id = O.id_empresa 
+    
+    WHERE 
+        status = ?
+    GROUP BY
+        O.id
+	ORDER BY
+		O.timestamp;
+    `;
+
+
+    db.query(
+        sql, 
+        status,
+        (err, data) => {
+            if (err) {
+                console.log('Error:', err);
+                result(err, null);
+            }
+            else {
+                result(null, data);
+            }
+        }
+
+    )
+    
+}
+
+
+
+
+
+
+
+
+
+Order.findByClientwallet = (user_id, status , result) => {
+
+    const sql = `
+    SELECT
+    CONVERT(O.id, char) AS id,
+    CONVERT(O.user_id, char) AS user_id,
+    CONVERT(O.id_orden, char) AS id_orden,
+    O.status,
+    O.puntos,
+    O.created_at,
+     JSON_OBJECT(
+        'id', CONVERT(A.id, char),
+        'lat', A.lat,
+        'lng', A.lng,
+        'status', A.status,
+        'evidencia', A.evidencia,
+        'cantidad_aprox', A.cantidad_aprox,
+        'nombre_evidencia', A.nombre_evidencia
+    ) AS orden,
+    JSON_OBJECT(
+        'id', CONVERT(U.id, char),
+        'name', U.name,
+        'lastname', U.lastname,
+        'image', U.image,
+        'phone', U.phone
+    ) AS clients
+   
+FROM 
+    wallet_history AS O
+INNER JOIN
+    users AS U
+ON
+    U.id = O.user_id
+
+INNER JOIN
+    orders AS A
+ON
+    A.id = O.id_orden 
+WHERE 
+    O.user_id = ? AND O.status = ?
+GROUP BY
+    O.id;
+    `;
+
+    db.query(
+        sql, 
+        [
+            user_id,
+            status
+        ],
+        (err, data) => {
+            if (err) {
+                console.log('Error:', err);
+                result(err, null);
+            }
+            else {
+                result(null, data);
+            }
+        }
+
+    )
+},
 Order.findByClientAndStatus = (id_client, status, result) => {
 
     const sql = `
@@ -132,9 +443,11 @@ Order.findByClientAndStatus = (id_client, status, result) => {
         O.lat,
         O.lng,
         O.status,
+        O.timestamp,
         O.evidencia,
         O.cantidad_aprox,
         O.nombre_evidencia,
+        O.puntos,
         O.created_at,
     JSON_OBJECT(
         'id', CONVERT(A.id, char),
@@ -175,7 +488,8 @@ Order.findByClientAndStatus = (id_client, status, result) => {
         O.id_client = ? AND O.status = ?
     GROUP BY
         O.id
-	
+     ORDER BY
+		O.timestamp DESC;
     `;
 
     db.query(
@@ -203,10 +517,14 @@ Order.findByDeliveryAndStatus = (id_delivery, status, result) => {
         CONVERT(O.id_client, char) AS id_client,
         CONVERT(O.id_address, char) AS id_address,
         CONVERT(O.id_delivery, char) AS id_delivery,
-        O.status,
-        O.timestamp,
         O.lat,
         O.lng,
+        O.status,
+        O.evidencia,
+        O.cantidad_aprox,
+        O.timestamp,
+        O.nombre_evidencia,
+        O.created_at,
         JSON_OBJECT(
             'id', CONVERT(A.id, char),
             'address', A.address,
@@ -227,19 +545,7 @@ Order.findByDeliveryAndStatus = (id_delivery, status, result) => {
             'lastname', U2.lastname,
             'image', U2.image,
             'phone', U2.phone
-        ) AS delivery,
-        JSON_ARRAYAGG(
-            JSON_OBJECT(
-                'id', CONVERT(P.id, char),
-                'name', P.name,
-                'description', P.description,
-                'image1', P.image1,
-                'image2', P.image2,
-                'image3', P.image3,
-                'price', P.price,
-                'quantity', OHP.quantity
-            )
-        ) AS products
+        ) AS delivery
     FROM 
         orders AS O
     INNER JOIN
@@ -254,14 +560,7 @@ Order.findByDeliveryAndStatus = (id_delivery, status, result) => {
         address AS A
     ON
         A.id = O.id_address 
-    INNER JOIN
-        order_has_products AS OHP
-    ON
-        OHP.id_order = O.id
-    INNER JOIN
-        products AS P
-    ON
-        P.id = OHP.id_product
+    
     WHERE 
         O.id_delivery = ? AND O.status = ?
     GROUP BY
@@ -290,24 +589,23 @@ Order.findByDeliveryAndStatus = (id_delivery, status, result) => {
 
 
 
-/*Order.updateToDispatched = (id_order, id_delivery, result) => {
+
+Order.updateToOnTheWay = (id_order, id_delivery,result) => {
     const sql = `
     UPDATE
         orders
     SET
         id_delivery = ?,
-        status = ?,
-        updated_at = ?
+        status = ?
     WHERE
         id = ?
     `;
 
     db.query(
         sql, 
-        [
+        [    
             id_delivery,
-            'DESPACHADO',
-            new Date(),
+            'EN CAMINO',
             id_order
         ],
         (err, res) => {
@@ -320,24 +618,21 @@ Order.findByDeliveryAndStatus = (id_delivery, status, result) => {
             }
         }
     )
-}*/
-
-Order.updateToOnTheWay = (id_order, result) => {
+}
+Order.updateToOFTheWay = (id_order, result) => {
     const sql = `
     UPDATE
         orders
     SET
-        status = ?,
-        updated_at = ?
+        status = ?
     WHERE
         id = ?
     `;
 
     db.query(
         sql, 
-        [
-            'EN CAMINO',
-            new Date(),
+        [    
+            'RECHAZADA',
             id_order
         ],
         (err, res) => {
@@ -352,13 +647,15 @@ Order.updateToOnTheWay = (id_order, result) => {
     )
 }
 
-Order.updateToDelivered = (id_order, result) => {
+
+
+Order.recolectado = (id_order, result) => {
     const sql = `
     UPDATE
         orders
     SET
-        status = ?,
-        updated_at = ?
+        
+        status = ?
     WHERE
         id = ?
     `;
@@ -367,7 +664,6 @@ Order.updateToDelivered = (id_order, result) => {
         sql, 
         [
             'ENTREGADO',
-            new Date(),
             id_order
         ],
         (err, res) => {
@@ -388,8 +684,7 @@ Order.updateLatLng = (order, result) => {
         orders
     SET
         lat = ?,
-        lng = ?,
-        updated_at = ?
+        lng = ?
     WHERE
         id = ?
     `;
@@ -399,7 +694,6 @@ Order.updateLatLng = (order, result) => {
         [
             order.lat,
             order.lng,
-            new Date(),
             order.id
         ],
         (err, res) => {

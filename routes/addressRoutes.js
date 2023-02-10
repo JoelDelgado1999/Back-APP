@@ -11,6 +11,6 @@ module.exports = (app) => {
     app.get('/api/address/findByUser/:id_user',  passport.authenticate('jwt', { session: false }), addressController.findByUser);
 
     app.post('/api/address/create',  passport.authenticate('jwt', { session: false }), addressController.create);
-    app.delete('/api/address/delete/:id_address', passport.authenticate('jwt', { session: false }),addressController.delete);
+    app.delete('/api/address/delete/:id_address', addressController.delete);
 
 }

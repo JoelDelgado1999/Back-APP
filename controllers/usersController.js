@@ -7,12 +7,12 @@ const storage = require('../utils/cloud_storage');
 
 module.exports = {
 
-    findDeliveryMen(req, res) {
-        User.findDeliveryMen((err, data) => {
+    findCentros(req, res) {
+        User.findCentros((err, data) => {
             if (err) {
                 return res.status(501).json({
                     success: false,
-                    message: 'Hubo un error con al listar los repartidores',
+                    message: 'Hubo un error con al listar los centros de acopio',
                     error: err
                 });
             }
@@ -21,6 +21,35 @@ module.exports = {
             return res.status(201).json(data);
         });
     },
+
+
+    delete(req, res){
+        console.log('req',req.params.id_user);
+        User.delete(req.params.id_user, (err)=>{
+         if (err) {
+             return res.status(501).json({
+                 data : null,
+                 success: false,
+                 message: 'Hubo un error al borrar',
+                 error: err
+             });
+         }
+ 
+         return res.status(201).json({
+             data: null,
+             success: true,
+             message: 'se borro con exito',
+              // EL ID DE LA NUEVA DIRECCION
+         });
+ 
+ 
+ 
+        })
+ 
+     },
+
+
+
 
     login(req, res) {
 
@@ -57,9 +86,12 @@ module.exports = {
                     lastname: myUser.lastname,
                     email: myUser.email,
                     phone: myUser.phone,
-                    image: myUser.image,
+                    image: myUser.image,puntos:myUser.puntos,
                     session_token: `JWT ${token}`,
+                    
                     //roles: JSON.parse(myUser.roles)
+                    rol: { name: myUser.rol, id: myUser.id_rol },
+                    role : myUser.id_rol,
                 }
 
                 return res.status(201).json({
@@ -79,7 +111,49 @@ module.exports = {
         });
 
     },
+    
+   
+    async  asignarpuntosHistory2(req, res) {
+      
+       // const id_client = req.params.id_client;
+        //const puntos  = req.body;
+       // print("eror",puntos)
+                const user  = req.body
+                console.log('ss',user);
+            
 
+                let puntos= user.kg
+                console.log("puntosss kg",puntos);
+                puntos= puntos * 2
+
+                resultPuntos= puntos
+                console.log("result",resultPuntos);
+    
+            console.log("order id", user.id_usuario.id);
+
+       User.asignarhistory2(user.id_usuario.id_client, user.id_usuario.id,  async (err, id) => {
+
+            if (err) {
+                return res.status(501).json({
+                    success: false,
+                    message: 'Hubo un error con la asignacion de puntos',
+                    error: err
+                });
+            }
+
+            return res.status(201).json({
+                success: true,
+                message: 'Los puntos se asignaron',
+                data: `${id}` // EL ID DE LA NUEVA DIRECCION
+            });
+             
+
+                
+
+        });
+
+    },
+    
     register(req, res) {
 
         const user = req.body; // CAPTURO LOS DATOS QUE ME ENVIE EL CLIENTE
@@ -156,10 +230,66 @@ module.exports = {
         });
 
     },
+     registroCentros(req, res) {
+
+        const user = req.body; // CAPTURO LOS DATOS QUE ME ENVIE EL CLIENTE
+
+
+    
+
+       
+        User.create(user, (err, data) => {
+
+        
+            if (err) {
+                return res.status(501).json({
+                    success: false,
+                    message: 'Hubo un error con el registro del usuario',
+                    error: err
+                });
+            }
+
+        
+          user.id = `${data}`;
+            const token = jwt.sign({id: user.id, email: user.email}, keys.secretOrKey, {});
+            user.session_token = `JWT ${token}`;
+
+            Rol.create(user.id, 2, (err, data) => {
+                
+                if (err) {
+                    return res.status(501).json({
+                        success: false,
+                        message: 'Hubo un error con el registro del rol de usuario',
+                        error: err
+                    });
+                }
+                
+                return res.status(201).json({
+                    success: true,
+                    message: 'El centro de acopio se realizo correctamente',
+                    data: user
+                });
+
+            });
+
+           
+
+        });
+
+    },
+
+
+
+
+
+
+
+
+
 
     async updateWithImage(req, res) {
 
-        const user = JSON.parse(req.body.user); // CAPTURO LOS DATOS QUE ME ENVIE EL CLIENTE
+        const user = req.body;  // CAPTURO LOS DATOS QUE ME ENVIE EL CLIENTE
 
         const files = req.files;
 
@@ -171,7 +301,6 @@ module.exports = {
                 user.image = url;
             }
         }
-
         User.update(user, (err, data) => {
 
             

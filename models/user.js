@@ -2,7 +2,10 @@ const db = require('../config/config');
 const bcrypt = require('bcryptjs');
 
 const User = {};
-/*
+
+
+
+
 User.findById = (id, result) => {
 
     const sql = `
@@ -14,12 +17,12 @@ User.findById = (id, result) => {
         U.image,
         U.phone,
         U.password,
+        U.puntos,
         JSON_ARRAYAGG(
             JSON_OBJECT(
                 'id', CONVERT(R.id, char),
                 'name', R.name,
-                'image', R.image,
-                'route', R.route
+                'image', R.image
             )
         ) AS roles
     FROM
@@ -52,14 +55,13 @@ User.findById = (id, result) => {
         }
     )
 
-}
-
-
-
+},
 User.findByEmail = (email, result) => {
 
     const sql = `
     SELECT
+        R.name AS rol,
+        R.id AS id_rol, 
         U.id,
         U.email,
         U.name,
@@ -67,12 +69,12 @@ User.findByEmail = (email, result) => {
         U.image,
         U.phone,
         U.password,
+        U.puntos,
         JSON_ARRAYAGG(
             JSON_OBJECT(
                 'id', CONVERT(R.id, char),
                 'name', R.name,
-                'image', R.image,
-                'route', R.route
+                'image', R.image
             )
         ) AS roles
     FROM
@@ -107,408 +109,34 @@ User.findByEmail = (email, result) => {
     )
 
 }
-
-User.create = async (user, result) => {
-    
-    const hash = await bcrypt.hash(user.password, 10);
-
+User.delete = (user, result) => {
     const sql = `
-        INSERT INTO
-            users(
-                email,
-                name,
-                lastname,
-                phone,
-                image,
-                password,
-                created_at
-            )
-        VALUES(?, ?, ?, ?, ?, ?, ?)
+    DELETE FROM user WHERE id =?
     `;
-
-    db.query
-    (
-        sql,
+    db.query(
+        sql, 
         [
-            user.email,
-            user.name,
-            user.lastname,
-            user.phone,
-            user.image,
-            hash,
-            new Date()
+            user,
+            
         ],
         (err, res) => {
             if (err) {
-                console.log('Error:', err);
-                result(err, null);
+                console.log('Errror:', err);
+                result(err);
             }
             else {
-                console.log('Id del nuevo usuario:', res.insertId);
-                result(null, res.insertId);
-            }
-        }
-    )
-
-}
-
-User.update = (user, result) => {
-
-    const sql = `
-    UPDATE
-        users
-    SET
-        name = ?,
-        lastname = ?,
-        phone = ?,
-        image = ?
-    WHERE
-        id = ?
-    `;
-
-    db.query
-    (
-        sql,
-        [
-            user.name,
-            user.lastname,
-            user.phone,
-            user.image,
-            user.id
-        ],
-        (err, res) => {
-            if (err) {
-                console.log('Error:', err);
-                result(err, null);
-            }
-            else {
-                console.log('Usuario actualizado:', user.id);
-                result(null, user.id);
-            }
-        }
-    )
-}
-
-User.updateWithoutImage = (user, result) => {
-
-    const sql = `
-    UPDATE
-        users
-    SET
-        name = ?,
-        lastname = ?,
-        phone = ?
-    WHERE
-        id = ?
-    `;
-
-    db.query
-    (
-        sql,
-        [
-            user.name,
-            user.lastname,
-            user.phone,
-            user.id
-        ],
-        (err, res) => {
-            if (err) {
-                console.log('Error:', err);
-                result(err, null);
-            }
-            else {
-                console.log('Usuario actualizado:', user.id);
-                result(null, user.id);
-            }
-        }
-    )
-}
-
-
-
-module.exports = User;
-/*const db = require('../config/config');
-const bcrypt= require('bcryptjs');
-const User ={};
-User.findById = (id,result)=>{
-
-    //const hash = await bcrypt.hash(user.password,10);
-    const sql =`
-    SELECT
-            CONVERT(U.id, char) AS id,
-            U.email,
-            U.name,
-            U.lastname,
-            U.image,
-            U.phone,
-            U.password,
-        JSON_ARRAYAGG(
-             JSON_OBJECT(
-                'id', CONVERT(R.id, char),
-                'name',R.name,
-                'image',R.image,
-                'route',R.route
-         )
-     ) AS roles
-    FROM
-        users AS U
-     INNER JOIN
-    	 user_has_roles AS UHR
-     ON 
-     	UHR.id_user= U.id
-     INNER JOIN 
-    	 roles AS R
-     ON
-     	UHR.id_rol= R.id
-    WHERE
-        id = ?
-    GROUP BY
-        U.id
-    `;
-    db.query(
-        sql,
-        [id],(err,user)=>{
-            if(err){
-                console.log('ERROR',err);
-                result(err,null)
-            }
-            else{
-                console.log('usuario obtenido',user[0]);
-                result(null,user[0]);
-            }
-        }
-        )
-
-}
-User.findByEmail = (email, result) => {
-
-    const sql = `
-    SELECT
-        U.id,
-        U.email,
-        U.name,
-        U.lastname,
-        U.image,
-        U.phone,
-        U.password,
-        JSON_ARRAYAGG(
-            JSON_OBJECT(
-                'id',R.id,
-                'name',R.name,
-                'image',R.image,
-                'route',R.route
-     )
-     )AS roles
-FROM
-    users AS U
- INNER JOIN
-     user_has_roles AS UHR
- ON 
-     UHR.id_user= U.id
- INNER JOIN 
-     roles AS R
- ON
-     UHR.id_rol= R.id
-WHERE
-    email = ?
-GROUP BY
-    U.id
-    `;
-
-    db.query(
-        sql,
-        [email],
-        (err, user) => {
-            if (err) {
-                console.log('Error:', err);
-                result(err, null);
-            }
-            else {
-                console.log('Usuario obtenido:', user[0]);
-                result(null, user[0]);
-            }
-        }
-    )
-
-}
-User.create= async(user,result)=>{
-    const hash = await bcrypt.hash(user.password,10);
-
-    const sql=`
-        INSERT INTO 
-            users(
-                email, 
-                name, 
-                lastname,
-                phone,
-                image,
-                password,
-                created_at
-            )
-        VALUES(?,?,?,?,?,?,?)
-    `;
-
-    db.query(
-        sql,
-        [
-           user.email,
-           user.name,
-           user.lastname,
-           user.phone,
-           user.image,
-           hash,
-           new Date()
-
-        ],
-        (err,res)=>{
-            if(err){
-                console.log('ERROR',err);
-                result(err,null)
-            }
-            else{
-                console.log('id nuevo usuario',res.insertId);
-                result(null,res.insertId);
+                console.log('Id de la nueva direccion borrada:',user);
+                result(null);
             }
         }
 
     )
-    User.update = (user, result) => {
-
-        const sql = `
-        UPDATE
-            users
-        SET
-            name = ?,
-            lastname = ?,
-            phone = ?,
-            image = ?,
-            updated_at = ?
-        WHERE
-            id = ?
-        `;
-    
-        db.query
-        (
-            sql,
-            [
-                user.name,
-                user.lastname,
-                user.phone,
-                user.image,
-                new Date(),
-                user.id
-            ],
-            (err, res) => {
-                if (err) {
-                    console.log('Error:', err);
-                    result(err, null);
-                }
-                else {
-                    console.log('Usuario actualizado:', user.id);
-                    result(null, user.id);
-                }
-            }
-        )
-    }
-    
-    User.updateWithoutImage = (user, result) => {
-    
-        const sql = `
-        UPDATE
-            users
-        SET
-            name = ?,
-            lastname = ?,
-            phone = ?,
-            updated_at = ?
-        WHERE
-            id = ?
-        `;
-    
-        db.query
-        (
-            sql,
-            [
-                user.name,
-                user.lastname,
-                user.phone,
-                new Date(),
-                user.id
-            ],
-            (err, res) => {
-                if (err) {
-                    console.log('Error:', err);
-                    result(err, null);
-                }
-                else {
-                    console.log('Usuario actualizado:', user.id);
-                    result(null, user.id);
-                }
-            }
-        )
-    }
-    
 }
-module.exports=User;*/
-
-
-
-
-User.findById = (id, result) => {
-
+User.findCentros= (result) => {
     const sql = `
     SELECT
         CONVERT(U.id, char) AS id,
-        U.email,
-        U.name,
-        U.lastname,
-        U.image,
-        U.phone,
-        U.password,
-        JSON_ARRAYAGG(
-            JSON_OBJECT(
-                'id', CONVERT(R.id, char),
-                'name', R.name,
-                'image', R.image,
-                'route', R.route
-            )
-        ) AS roles
-    FROM
-        users AS U
-    INNER JOIN
-        user_has_roles AS UHR
-    ON
-        UHR.id_user = U.id
-    INNER JOIN
-        roles AS R
-    ON
-        UHR.id_rol = R.id
-    WHERE
-        U.id = ?
-    GROUP BY
-        U.id
-    `;
-
-    db.query(
-        sql,
-        [id],
-        (err, user) => {
-            if (err) {
-                console.log('Error:', err);
-                result(err, null);
-            }
-            else {
-                result(null, user[0]);
-            }
-        }
-    )
-
-}
-
-User.findDeliveryMen = (result) => {
-    const sql = `
-    SELECT
-        CONVERT(U.id, char) AS id,
+        U.ci,
         U.email,
         U.name,
         U.lastname,
@@ -542,59 +170,88 @@ User.findDeliveryMen = (result) => {
     );
 }
 
-User.findByEmail = (email, result) => {
 
+
+
+User.findUser = (status ,result) => {
     const sql = `
     SELECT
-        R.name AS rol,
-        R.id AS id_rol,
-        U.id,
-        U.email,
-        U.name,
-        U.lastname,
-        U.image,
-        U.phone,
-        U.password,
-        JSON_ARRAYAGG(
-            JSON_OBJECT(
-                'id', CONVERT(R.id, char),
-                'name', R.name,
-                'image', R.image,
-                'route', R.route
-            )
-        ) AS roles
-    FROM
+        CONVERT(O.id, char) AS id,
+        CONVERT(O.id_client, char) AS id_client,
+        CONVERT(O.id_delivery, char) AS id_delivery,
+        O.lat,
+        O.lng,
+        O.status,
+        O.evidencia,
+        O.cantidad_aprox,
+        O.timestamp,
+        O.nombre_evidencia,
+        O.created_at,
+        JSON_OBJECT(
+            'id', CONVERT(A.id, char),
+            'address', A.address,
+            'neighborhood', A.neighborhood,
+            'lat', A.lat,
+            'lng', A.lng
+        ) AS address,
+        JSON_OBJECT(
+            'id', CONVERT(U.id, char),
+            'name', U.name,
+            'lastname', U.lastname,
+            'image', U.image,
+            'phone', U.phone
+        ) AS client,
+        JSON_OBJECT(
+            'id', CONVERT(U2.id, char),
+            'name', U2.name,
+            'lastname', U2.lastname,
+            'image', U2.image,
+            'phone', U2.phone
+        ) AS delivery
+    FROM 
+        orders AS O
+    INNER JOIN
         users AS U
-    INNER JOIN
-        user_has_roles AS UHR
     ON
-        UHR.id_user = U.id
+        U.id = O.id_client
+	LEFT JOIN
+		users AS U2
+	ON
+		U2.id = O.id_delivery
     INNER JOIN
-        roles AS R
+        address AS A
     ON
-        UHR.id_rol = R.id
-    WHERE
-        email = ?
+        A.id = O.id_address 
+    
+    WHERE 
+        status = ?
     GROUP BY
-        U.id
+        O.id
+	ORDER BY
+		O.timestamp;
     `;
 
+
     db.query(
-        sql,
-        [email],
-        (err, user) => {
+        sql, 
+        status,
+        (err, data) => {
             if (err) {
                 console.log('Error:', err);
                 result(err, null);
             }
             else {
-                console.log('Usuario obtenido:', user[0]);
-                result(null, user[0]);
+                result(null, data);
             }
         }
-    )
 
+    )
+    
 }
+
+
+
+
 
 User.create = async (user, result) => {
     
@@ -641,6 +298,108 @@ User.create = async (user, result) => {
 
 }
 
+
+User.asignar = (user, result) => {
+
+    const sql = `
+    INSERT INTO
+    user_wallet (
+        user_id,
+        puntos
+    )
+VALUES(?, ?)
+    `;
+
+    db.query
+    (
+        sql,
+        [
+           user.user_id,
+           user.puntos,
+           
+        ],
+        (err, res) => {
+            if (err) {
+                console.log('Error:', err);
+                result(err, null);
+            }
+            else {
+                console.log('puntos asignados:', res.insertId);
+                result(null, res.insertId);
+            }
+        }
+    )
+}
+User.asignarhistory2 = (id_client,id , result) => {
+
+    const sql = `
+    INSERT INTO
+    wallet_history (
+        user_id,
+        status,
+        puntos,
+        id_orden
+      ) 
+VALUES(?, ?, ?, ?)
+    `;
+
+    db.query
+    (
+        sql,
+        [
+           id_client,
+           "ACEPTADO",
+           resultPuntos,
+           id,
+            
+           //user.resultPuntos
+           
+        ],
+        (err, res) => {
+            if (err) {
+                console.log('Error:', err);
+                result(err, null);
+            }
+            else {
+                console.log('puntos asignados:', res.insertId);
+                result(null, res.insertId);
+            }
+        }
+    )
+}
+User.asignarhistory = (id_order, result) => {
+
+    const sql = `
+    UPDATE
+    orders
+        SET
+            puntos = ?
+            
+        WHERE
+            id = ?
+`;
+
+    db.query
+    (
+        sql,
+        [
+           
+           resultPuntos,
+           id_order
+           
+        ],
+        (err, res) => {
+            if (err) {
+                console.log('Error:', err);
+                result(err, null);
+            }
+            else {
+                console.log('puntos asignados:', res.insertId);
+                result(null, res.insertId);
+            }
+        }
+    )
+}
 User.update = (user, result) => {
 
     const sql = `

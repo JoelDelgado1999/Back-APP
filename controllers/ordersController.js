@@ -37,6 +37,90 @@ module.exports = {
         });
     
     },
+    async createCentros(req, res) {
+        const order = JSON.parse(req.body.order);
+        
+        const files = req.files;
+              
+       if (files.length > 0) {
+            const path = `image_${Date.now()}`;
+            const url = await storage(files[0], path);
+
+            if (url != undefined && url != null) {
+                order.evidencia = url;
+            }
+        }
+
+        Order.createCentros(order, async (err, id) => {
+  
+            if (err) {
+                return res.status(501).json({
+                    success: false,
+                    message: 'Hubo un error al momento de crear la orden',
+                    error: err
+                });
+            }
+
+                return res.status(201).json({
+                success: true,
+                message: 'La orden se ha creado correctamente',
+                data: `${id}` // EL ID DE LA NUEVA CATEGORIA
+            });
+
+        });
+    
+    },
+
+
+
+
+    AceptarOrdenEmpresa(req, res) {
+        const order = req.body;
+
+
+        Order.AceptarOrdenEmpresa(order.id,order.id_empresa, (err, id_order) => {
+            if (err) {
+                return res.status(501).json({
+                    success: false,
+                    message: 'Hubo un error al momento de aceptar la orden',
+                    error: err
+                });
+            }
+
+            return res.status(201).json({
+                success: true,
+                message: 'La orden se acepto correctamente',
+                data: `${id_order}` // EL ID 
+            });
+
+        });
+    },
+    
+    RechazarOrdenEmpresa(req, res) {
+        const order = req.body;
+
+
+        Order.RechazarOrdenEmpresa(order.id,order.id_empresa, (err, id_order) => {
+            if (err) {
+                return res.status(501).json({
+                    success: false,
+                    message: 'Hubo un error al momento de rechazar la orden',
+                    error: err
+                });
+            }
+
+            return res.status(201).json({
+                success: true,
+                message: 'La orden se rechazo correctamente',
+                data: `${id_order}` // EL ID 
+            });
+
+        });
+    },
+    
+
+
+
    
     findByOrder(req, res)//recibo todas las solicitudes de todos los usuarios
      {
@@ -58,6 +142,27 @@ module.exports = {
             return res.status(201).json(data);
         })
     },
+    findSolicitudesCentros(req, res)//recibo todas las solicitudes de todos los Centros de acopio
+    {
+       const status = req.params.status;
+       Order.findSolicitudesCentros(status, (err, data) => {
+           if (err) {
+               return res.status(501).json({
+                   success: false,
+                   message: 'Hubo un error al tratar de obtener las ordenes',
+                   error: err
+               });
+           }
+           for (const d of data) {
+               d.client = JSON.parse(d.client);
+               d.empresa = JSON.parse(d.empresa);
+          
+           }
+           return res.status(201).json(data);
+       })
+   },
+
+
     findByDeliveryAndStatus(req, res) {
         const id_delivery = req.params.id_delivery;
         const status = req.params.status;
@@ -108,7 +213,33 @@ module.exports = {
     },
 
 
+    findByClientwallet(req, res) {
+        const a = req.body;
+        const id_user = req.params.id_client;
+        console.log('cliente',id_user)
+        const puntos= req.params.puntos;
+        //const id_client= req.params.id_client
+        const status = req.params.status;
+        console.log('puntos',puntos);
 
+        Order.findByClientwallet(id_user,status, (err, data) => {
+            if (err) {
+                return res.status(501).json({
+                    success: false,
+                    message: 'Hubo un error al momento de listar las ordenes',
+                    error: err
+                });
+            }
+
+            for (const d of data) {
+                d.clients = JSON.parse(d.clients);
+                d.orden = JSON.parse(d.orden);
+            }
+            
+            
+            return res.status(201).json(data);
+        });
+    },
 
     /*async createww(req, res) {
 
@@ -169,12 +300,31 @@ module.exports = {
 
         });
     },
-    
+    recolectado(req, res) {
+        const order = req.body;
+
+        Order.recolectado(order.id, (err, id_order) => {
+            if (err) {
+                return res.status(501).json({
+                    success: false,
+                    message: 'Hubo un error al momento de actualizar la orden',
+                    error: err
+                });
+            }
+
+            return res.status(201).json({
+                success: true,
+                message: 'La orden se ha actualizado correctamente',
+                data: `${id_order}` // EL ID 
+            });
+
+        });
+    },
     updateToOnTheWay(req, res) {
         const order = req.body;
 
 
-        Order.updateToOnTheWay(order.id, (err, id_order) => {
+        Order.updateToOnTheWay(order.id,order.id_delivery, (err, id_order) => {
             if (err) {
                 return res.status(501).json({
                     success: false,
