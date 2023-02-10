@@ -48,7 +48,7 @@ premiosRoutes(app);
 categoriesRoutes(app);
 productRoutes(app, upload);
 
-server.listen(3000, '192.168.1.7'|| 'localhost', function() {
+server.listen(3000, '192.168.1.6' || 'localhost', function() {
     console.log('Aplicacion de NodeJS ' + port + ' Iniciada...')
 });
 

@@ -1,11 +1,12 @@
 const User = require('../models/user');
+const Rol = require('../models/rol');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const keys = require('../config/keys');
-const Rol = require('../models/rol');
 const storage = require('../utils/cloud_storage');
 
 module.exports = {
+
     findDeliveryMen(req, res) {
         User.findDeliveryMen((err, data) => {
             if (err) {
@@ -16,7 +17,7 @@ module.exports = {
                 });
             }
 
-
+            
             return res.status(201).json(data);
         });
     },
@@ -27,7 +28,7 @@ module.exports = {
         const password = req.body.password;
 
         User.findByEmail(email, async (err, myUser) => {
-
+            
             console.log('Error ', err);
 
             if (err) {
@@ -48,7 +49,7 @@ module.exports = {
             const isPasswordValid = await bcrypt.compare(password, myUser.password);
 
             if (isPasswordValid) {
-                const token = jwt.sign({ id: myUser.id, email: myUser.email }, keys.secretOrKey, {});
+                const token = jwt.sign({id: myUser.id, email: myUser.email}, keys.secretOrKey, {});
 
                 const data = {
                     id: `${myUser.id}`,
@@ -58,8 +59,7 @@ module.exports = {
                     phone: myUser.phone,
                     image: myUser.image,
                     session_token: `JWT ${token}`,
-                    //roles: JSON.parse(myUser.roles),
-                    role: { name: myUser.rol, id: myUser.id_rol },
+                    //roles: JSON.parse(myUser.roles)
                 }
 
                 return res.status(201).json({
@@ -119,7 +119,7 @@ module.exports = {
 
         User.create(user, (err, data) => {
 
-
+        
             if (err) {
                 return res.status(501).json({
                     success: false,
@@ -128,13 +128,13 @@ module.exports = {
                 });
             }
 
-
+        
             user.id = `${data}`;
-            const token = jwt.sign({ id: user.id, email: user.email }, keys.secretOrKey, {});
+            const token = jwt.sign({id: user.id, email: user.email}, keys.secretOrKey, {});
             user.session_token = `JWT ${token}`;
 
             Rol.create(user.id, 3, (err, data) => {
-
+                
                 if (err) {
                     return res.status(501).json({
                         success: false,
@@ -142,7 +142,7 @@ module.exports = {
                         error: err
                     });
                 }
-
+                
                 return res.status(201).json({
                     success: true,
                     message: 'El registro se realizo correctamente',
@@ -151,7 +151,7 @@ module.exports = {
 
             });
 
-
+           
 
         });
 
@@ -174,7 +174,7 @@ module.exports = {
 
         User.update(user, (err, data) => {
 
-
+            
             if (err) {
                 return res.status(501).json({
                     success: false,
@@ -191,7 +191,7 @@ module.exports = {
                         error: err
                     });
                 }
-
+                
                 myData.session_token = user.session_token;
                 myData.roles = JSON.parse(myData.roles);
 
@@ -211,7 +211,7 @@ module.exports = {
 
         User.updateWithoutImage(user, (err, data) => {
 
-
+        
             if (err) {
                 return res.status(501).json({
                     success: false,
@@ -228,7 +228,7 @@ module.exports = {
                         error: err
                     });
                 }
-
+                
                 myData.session_token = user.session_token;
                 myData.roles = JSON.parse(myData.roles);
 
@@ -239,20 +239,20 @@ module.exports = {
                 });
             })
 
-
+            
         });
 
     },
-
-
+    
+    
     async updateNotificationToken(req, res) {
 
-        const id = req.body.id;
-        const token = req.body.token;
+        const id = req.body.id; 
+        const token = req.body.token; 
 
         User.updateNotificationToken(id, token, (err, id_user) => {
 
-
+        
             if (err) {
                 return res.status(501).json({
                     success: false,
@@ -266,7 +266,7 @@ module.exports = {
                 message: 'El token se actualizo correctamente',
                 data: id_user
             });
-
+            
         });
 
     },
