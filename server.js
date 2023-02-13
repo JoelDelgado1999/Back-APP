@@ -48,9 +48,9 @@ premiosRoutes(app);
 categoriesRoutes(app);
 productRoutes(app, upload);
 
-server.listen(3000, '192.168.1.6' || 'localhost', function() {
-    console.log('Aplicacion de NodeJS ' + port + ' Iniciada...')
-});
+// server.listen(3000, 'localhost', function() {
+//     console.log('Aplicacion de NodeJS ' + port + ' Iniciada...')
+// });
 
 
 // ERROR HANDLER
@@ -63,6 +63,9 @@ app.get('/',  (req, res) => {
     res.send('Ruta raiz del backend');
 });
 
+app.listen(4000, ()=>{
+    console.log('Aplicacion de NodeJS')
+})
 
 module.exports = {
     app: app,

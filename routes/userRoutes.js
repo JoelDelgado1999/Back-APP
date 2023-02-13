@@ -16,9 +16,12 @@ module.exports = (app,upload) => {
 
     app.put('/api/users/update', usersController.updateWithImage);
     app.put('/api/users/updateWithoutImage', passport.authenticate('jwt', { session: false }), usersController.updateWithoutImage);
+    app.put('/api/users/updatecentroacopio/:id',  usersController.updateCentroAcopio);
     //app.post('/api/users/asignar', usersController.asignarpuntos);
      //app.put('/api/users/asignarHistory', usersController.asignarpuntosHistory);
     app.post('/api/users/asignarHistory2', usersController.asignarpuntosHistory2);
+
+    app.post('/api/login/dashboard', usersController.loginAdminDashboard);
 
 
 

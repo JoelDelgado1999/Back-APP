@@ -5,7 +5,27 @@ const User = {};
 
 
 
-
+User.findByEmailDashBoard = (email, result) => {
+    const sql = `
+    SELECT U.email, U.name, U.password, U.id
+        FROM users AS U 
+        WHERE U.email = ?
+    `;
+    db.query(
+        sql,
+        [email],
+        (err, user) => {
+            if (err) {
+                console.log('Error:', err);
+                result(err, null);
+            }
+            else {
+                console.log('Usuario obtenido:', user[0]);
+                result(null, user[0]);
+            }
+        }
+    )
+}
 User.findById = (id, result) => {
 
     const sql = `
@@ -88,7 +108,7 @@ User.findByEmail = (email, result) => {
     ON
         UHR.id_rol = R.id
     WHERE
-        email = ?
+        U.email = ?
     GROUP BY
         U.id
     `;
@@ -111,7 +131,7 @@ User.findByEmail = (email, result) => {
 }
 User.delete = (user, result) => {
     const sql = `
-    DELETE FROM user WHERE id =?
+    DELETE FROM users WHERE id =?
     `;
     db.query(
         sql, 
@@ -256,7 +276,6 @@ User.findUser = (status ,result) => {
 User.create = async (user, result) => {
     
     const hash = await bcrypt.hash(user.password, 10);
-
     const sql = `
         INSERT INTO
             users(
@@ -266,9 +285,10 @@ User.create = async (user, result) => {
                 phone,
                 image,
                 password,
-                created_at
+                created_at,
+                puntos
             )
-        VALUES(?, ?, ?, ?, ?, ?, ?)
+        VALUES(?, ?, ?, ?, ?, ?, ?,0)
     `;
 
     db.query
@@ -474,6 +494,44 @@ User.updateWithoutImage = (user, result) => {
     )
 }
 
+User.updateCentroAcopio = (id, user, result) => {
+
+    const sql = `
+    UPDATE
+        users
+    SET
+        name = ?,
+        lastname = ?,
+        phone = ?,
+        email = ?,
+        ci =?
+    WHERE
+        id = ?
+    `;
+
+    db.query
+    (
+        sql,
+        [
+            user.name,
+            user.lastname,
+            user.phone,
+            user.email,
+            user.ci,
+            id
+        ],
+        (err, res) => {
+            if (err) {
+                console.log('Error:', err);
+                result(err, null);
+            }
+            else {
+                console.log('Usuario actualizado:', user.id);
+                result(null, user.id);
+            }
+        }
+    )
+}
 
 
 
