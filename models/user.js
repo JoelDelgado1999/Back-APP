@@ -266,9 +266,10 @@ User.create = async (user, result) => {
                 phone,
                 image,
                 password,
+                puntos,
                 created_at
             )
-        VALUES(?, ?, ?, ?, ?, ?, ?)
+        VALUES(?, ?, ?, ?, ?, ?, ? ,?)
     `;
 
     db.query
@@ -281,6 +282,7 @@ User.create = async (user, result) => {
             user.phone,
             user.image,
             hash,
+            0,
             new Date(),
            
         ],
@@ -298,24 +300,26 @@ User.create = async (user, result) => {
 
 }
 
-
-User.asignar = (user, result) => {
+User.create_user_wallet = async (user_id, result) => {
+    
 
     const sql = `
-    INSERT INTO
-    user_wallet (
-        user_id,
-        puntos
-    )
-VALUES(?, ?)
+        INSERT INTO
+            user_wallet(
+               id_client,
+               puntos,
+               created_at
+            )
+        VALUES(?, ?, ?)
     `;
 
     db.query
     (
         sql,
         [
-           user.user_id,
-           user.puntos,
+            user_id,
+            0,
+            new Date(),
            
         ],
         (err, res) => {
@@ -324,12 +328,44 @@ VALUES(?, ?)
                 result(err, null);
             }
             else {
-                console.log('puntos asignados:', res.insertId);
+                console.log('Id del nuevo usuario_wallet:', res.insertId);
                 result(null, res.insertId);
             }
         }
     )
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 User.asignarhistory2 = (id_client,id , result) => {
 
     const sql = `
@@ -367,7 +403,7 @@ VALUES(?, ?, ?, ?)
         }
     )
 }
-User.asignarhistory = (id_order, result) => {
+/*User.asignarhistory = (id_order, result) => {
 
     const sql = `
     UPDATE
@@ -399,7 +435,7 @@ User.asignarhistory = (id_order, result) => {
             }
         }
     )
-}
+}*/
 User.update = (user, result) => {
 
     const sql = `
@@ -422,7 +458,6 @@ User.update = (user, result) => {
             user.lastname,
             user.phone,
             user.image,
-         
             user.id
         ],
         (err, res) => {

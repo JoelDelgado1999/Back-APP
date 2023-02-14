@@ -213,16 +213,14 @@ module.exports = {
     },
 
 
-    findByClientwallet(req, res) {
-        const a = req.body;
-        const id_user = req.params.id_client;
-        console.log('cliente',id_user)
-        const puntos= req.params.puntos;
-        //const id_client= req.params.id_client
-        const status = req.params.status;
-        console.log('puntos',puntos);
+    GetWalletByClientId(req, res) {
+        console.log('erorro')
+       // const a = req.body;
+        const id_user = req.params.id_user;
+        console.log('cliente',id_user);
+       
 
-        Order.findByClientwallet(id_user,status, (err, data) => {
+        Order.GetWalletByClientId(id_user, (err, data) => {
             if (err) {
                 return res.status(501).json({
                     success: false,
@@ -230,42 +228,63 @@ module.exports = {
                     error: err
                 });
             }
+            
+           const  HistorialBilletera =  data ;
+            
+           let acumulador =0;
+           for(const a of HistorialBilletera ){
 
-            for (const d of data) {
-                d.clients = JSON.parse(d.clients);
-                d.orden = JSON.parse(d.orden);
-            }
+             acumulador = a.puntos + acumulador;
+
+
             
+
+           }
+
+            const response = { historialWallet: data, totalPuntosBilletera : acumulador  }
             
-            return res.status(201).json(data);
+            Order.update_user_wallet( acumulador,id_user,  async (err, id) => {
+
+                console.log('data',id_user,acumulador);
+                  console.log('subido');
+     
+                     
+     
+             }); 
+             Order.update_user_puntos( acumulador,id_user,  async (err, id) => {
+
+                console.log('data',id_user,acumulador);
+                  console.log('subido usuarios puntos');
+     
+                     
+     
+             }); 
+             Order.update_puntos_ordenes( acumulador,id_order,  async (err, id) => {
+
+                console.log('data',id_user,acumulador);
+                  console.log('subido ordenes puntos');
+     
+                     
+     
+             }); 
+
+
+            return res.status(201).json(response);
+
+
         });
+    // funcion global
+        
+
     },
 
-    /*async createww(req, res) {
+    
 
-        const order = req.body;
-        const files = req.files;
-        Order.create(order, async (err, id) => {
-  
-            if (err) {
-                return res.status(501).json({
-                    success: false,
-                    message: 'Hubo un error al momento de crear la orden',
-                    error: err
-                });
-            }
 
-            
 
-            return res.status(201).json({
-                success: true,
-                message: 'La orden se ha creado correctamente',
-                data: `${id}` // EL ID DE LA NUEVA CATEGORIA
-            });
 
-        });
 
-    },*/
+
     updateToDispatched(req, res) {
         const order = req.body;
 
@@ -342,6 +361,55 @@ module.exports = {
         });
     },
     
+
+
+    updateToOnInnomine(req, res) {
+        const order = req.body;
+
+
+        Order.updateToOnInomine(order.id,order.id_delivery, (err, id_order) => {
+            if (err) {
+                return res.status(501).json({
+                    success: false,
+                    message: 'Hubo un error al momento de aceptar la orden',
+                    error: err
+                });
+            }
+
+            return res.status(201).json({
+                success: true,
+                message: 'La orden se ha actualizado correctamente',
+                data: `${id_order}` // EL ID 
+            });
+
+        });
+    },
+
+    updateToOfInnomine(req, res) {
+        const order = req.body;
+
+
+        Order.updateToOfInomine(order.id,order.id_delivery, (err, id_order) => {
+            if (err) {
+                return res.status(501).json({
+                    success: false,
+                    message: 'Hubo un error al momento de rechazar la solicitud',
+                    error: err
+                });
+            }
+
+            return res.status(201).json({
+                success: true,
+                message: 'La orden se ha rechazado correctamente',
+                data: `${id_order}` // EL ID 
+            });
+
+        });
+    },
+
+
+
+
     updateToDelivered(req, res) {
         const order = req.body;
 

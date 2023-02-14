@@ -338,9 +338,8 @@ Order.findSolicitudesCentros = (status ,result) => {
 		U2.id = O.id_empresa 
     
     WHERE 
-        status = ?
-    GROUP BY
-        O.id
+        status = EN CAMINO
+ 
 	ORDER BY
 		O.timestamp;
     `;
@@ -371,32 +370,13 @@ Order.findSolicitudesCentros = (status ,result) => {
 
 
 
-Order.findByClientwallet = (user_id, status , result) => {
+Order.GetWalletByClientId = (id_user, result) => {
 
     const sql = `
     SELECT
-    CONVERT(O.id, char) AS id,
-    CONVERT(O.user_id, char) AS user_id,
-    CONVERT(O.id_orden, char) AS id_orden,
     O.status,
     O.puntos,
-    O.created_at,
-     JSON_OBJECT(
-        'id', CONVERT(A.id, char),
-        'lat', A.lat,
-        'lng', A.lng,
-        'status', A.status,
-        'evidencia', A.evidencia,
-        'cantidad_aprox', A.cantidad_aprox,
-        'nombre_evidencia', A.nombre_evidencia
-    ) AS orden,
-    JSON_OBJECT(
-        'id', CONVERT(U.id, char),
-        'name', U.name,
-        'lastname', U.lastname,
-        'image', U.image,
-        'phone', U.phone
-    ) AS clients
+    O.created_at
    
 FROM 
     wallet_history AS O
@@ -410,16 +390,13 @@ INNER JOIN
 ON
     A.id = O.id_orden 
 WHERE 
-    O.user_id = ? AND O.status = ?
-GROUP BY
-    O.id;
+    O.user_id = ? AND O.status = "ACEPTADO" ;
     `;
 
     db.query(
         sql, 
         [
-            user_id,
-            status
+            id_user
         ],
         (err, data) => {
             if (err) {
@@ -484,6 +461,10 @@ Order.findByClientAndStatus = (id_client, status, result) => {
         address AS A
     ON
         A.id = O.id_address 
+
+   
+
+        
     WHERE 
         O.id_client = ? AND O.status = ?
     GROUP BY
@@ -587,6 +568,66 @@ Order.findByDeliveryAndStatus = (id_delivery, status, result) => {
     )
 }
 
+Order.updateToOnInomine = (id_order, id_delivery,result) => {
+    const sql = `
+    UPDATE
+        solicitudes_centros
+    SET
+        id_delivery = ?,
+        status = ?
+    WHERE
+        id = ?
+    `;
+
+    db.query(
+        sql, 
+        [    
+            id_delivery,
+            'ACEPTADO',
+            id_order
+        ],
+        (err, res) => {
+            if (err) {
+                console.log('Error:', err);
+                result(err, null);
+            }
+            else {
+                result(null, id_order);
+            }
+        }
+    )
+}
+Order.updateToOfInomine = (id_order, id_delivery,result) => {
+    const sql = `
+    UPDATE
+        solicitudes_centros
+    SET
+        id_delivery = ?,
+        status = ?
+    WHERE
+        id = ?
+    `;
+
+    db.query(
+        sql, 
+        [    
+            id_delivery,
+            'RECHAZADO',
+            id_order
+        ],
+        (err, res) => {
+            if (err) {
+                console.log('Error:', err);
+                result(err, null);
+            }
+            else {
+                result(null, id_order);
+            }
+        }
+    )
+}
+
+
 
 
 
@@ -647,6 +688,114 @@ Order.updateToOFTheWay = (id_order, result) => {
     )
 }
 
+
+
+
+
+
+
+Order.update_user_wallet= (acumulador,id_client, result) => {
+
+    const sql = `
+    UPDATE
+    user_wallet
+        SET
+            puntos = ?
+            
+        WHERE
+            id_client = ?
+`;
+
+    db.query
+    (
+        sql,
+        [
+           
+           acumulador,
+           id_client
+           
+        ],
+        (err, res) => {
+            if (err) {
+                console.log('Error:', err);
+                result(err, null);
+            }
+            else {
+                console.log('puntos asignados:', res.insertId);
+                result(null, res.insertId);
+            }
+        }
+    )
+}
+
+Order.update_user_puntos= (resultPuntos,id_client, result) => {
+
+    const sql = `
+    UPDATE
+    users
+        SET
+            puntos = ?
+            
+        WHERE
+            id = ?
+`;
+
+    db.query
+    (
+        sql,
+        [
+           
+           resultPuntos,
+           id_client
+           
+        ],
+        (err, res) => {
+            if (err) {
+                console.log('Error:', err);
+                result(err, null);
+            }
+            else {
+                console.log('puntos asignados:', res.insertId);
+                result(null, res.insertId);
+            }
+        }
+    )
+}
+
+
+Order.update_puntos_ordenes= (resultPuntos,id_order, result) => {
+
+    const sql = `
+    UPDATE
+    orders
+        SET
+            puntos = ?
+            
+        WHERE
+            id = ?
+`;
+
+    db.query
+    (
+        sql,
+        [
+           
+           resultPuntos,
+           id_order
+           
+        ],
+        (err, res) => {
+            if (err) {
+                console.log('Error:', err);
+                result(err, null);
+            }
+            else {
+                console.log('puntos asignados:', res.insertId);
+                result(null, res.insertId);
+            }
+        }
+    )
+}
 
 
 Order.recolectado = (id_order, result) => {
