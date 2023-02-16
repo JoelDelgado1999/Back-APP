@@ -15,6 +15,7 @@ module.exports = (app,upload) => {
     app.post('/api/orders/create', upload.array('image', 1), passport.authenticate('jwt', { session: false }), OrdersController.create);
     app.post('/api/orders/createCentros', upload.array('image', 1), passport.authenticate('jwt', { session: false }), OrdersController.createCentros);
     app.get('/api/orders/findByClientAndStatus/:id_client/:status',  passport.authenticate('jwt', { session: false }), OrdersController.findByClientAndStatus);
+    app.get('/api/orders/findByCentrosSolicitudesAndStatus/:id_client/:status',  passport.authenticate('jwt', { session: false }), OrdersController.findByCentrosSolicitudesAndStatus);
     app.get('/api/orders/GetWalletByClientId/:id_user',  OrdersController.GetWalletByClientId);// ver estados premios
 
     app.put('/api/orders/AceptarOrdenEmpresa',   OrdersController.AceptarOrdenEmpresa);//EMPRESA ACEPTA LA ORDEN  - WEB

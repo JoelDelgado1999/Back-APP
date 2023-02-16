@@ -338,7 +338,7 @@ Order.findSolicitudesCentros = (status ,result) => {
 		U2.id = O.id_empresa 
     
     WHERE 
-        status = EN CAMINO
+        status = "EN ESPERA"
  
 	ORDER BY
 		O.timestamp;
@@ -409,7 +409,61 @@ WHERE
         }
 
     )
-},
+}
+
+Order.findByCentrosSolicitudesAndStatus = (id_client, status, result) => {
+
+    const sql = `
+    SELECT
+    CONVERT(O.id, char) AS id,
+    CONVERT(O.id_client, char) AS id_client,
+    O.status,
+    O.timestamp,
+    O.evidencia,
+    O.cantidad_aprox,
+    O.nombre_evidencia,
+    O.created_at,
+JSON_OBJECT(
+        'id', CONVERT(U.id, char),
+        'name', U.name,
+        'lastname', U.lastname,
+        'image', U.image,
+        'phone', U.phone
+    ) AS client
+FROM 
+    solicitudes_centros AS O
+INNER JOIN
+    users AS U
+ON
+    U.id = O.id_client
+WHERE
+    O.id_client = ? AND O.status = ?
+
+ ORDER BY
+    O.timestamp DESC;
+    `;
+
+    db.query(
+        sql,
+        [
+            id_client,
+            status
+        ],
+        (err, data) => {
+            if (err) {
+                console.log('Error:', err);
+                result(err, null);
+            }
+            else {
+                console.log(data)
+
+                result(null, data);
+            }
+        }
+
+    )
+    
+}
 Order.findByClientAndStatus = (id_client, status, result) => {
 
     const sql = `

@@ -286,10 +286,9 @@ User.create = async (user, result) => {
                 image,
                 password,
                 puntos,
-                created_at,
-                puntos
+                created_at
             )
-        VALUES(?, ?, ?, ?, ?, ?, ?)
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     db.query

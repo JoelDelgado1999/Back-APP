@@ -63,7 +63,7 @@ app.get('/',  (req, res) => {
     res.send('Ruta raiz del backend');
 });
 
-app.listen(4000, ()=>{
+app.listen(3000, ()=>{
     console.log('Aplicacion de NodeJS')
 })
 

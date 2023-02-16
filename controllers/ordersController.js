@@ -188,6 +188,30 @@ module.exports = {
         });
     },
     
+    findByCentrosSolicitudesAndStatus(req, res) {
+        const id_client = req.params.id_client;
+        const status = req.params.status;
+
+        Order.findByCentrosSolicitudesAndStatus(id_client, status, (err, data) => {
+            if (err) {
+                return res.status(501).json({
+                    success: false,
+                    message: 'Hubo un error al momento de listar las ordenes',
+                    error: err
+                });
+            }
+
+            for (const d of data) {
+                
+                d.client = JSON.parse(d.client);
+               
+            }
+            
+            
+            return res.status(201).json(data);
+        });
+    },
+
     findByClientAndStatus(req, res) {
         const id_client = req.params.id_client;
         const status = req.params.status;
@@ -212,7 +236,6 @@ module.exports = {
         });
     },
 
-
     GetWalletByClientId(req, res) {
         console.log('erorro')
        // const a = req.body;
@@ -230,18 +253,19 @@ module.exports = {
             }
             
            const  HistorialBilletera =  data ;
-            
+            console.log('errroor',HistorialBilletera);
            let acumulador =0;
            for(const a of HistorialBilletera ){
 
              acumulador = a.puntos + acumulador;
 
-
+             console.log('errroor puntos',a.puntos);
             
 
            }
 
             const response = { historialWallet: data, totalPuntosBilletera : acumulador  }
+            
             
             Order.update_user_wallet( acumulador,id_user,  async (err, id) => {
 

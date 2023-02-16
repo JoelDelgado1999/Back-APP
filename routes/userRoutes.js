@@ -20,6 +20,7 @@ module.exports = (app,upload) => {
     //app.post('/api/users/asignar', usersController.asignarpuntos);
      //app.put('/api/users/asignarHistory', usersController.asignarpuntosHistory);
     app.post('/api/users/asignarHistory2', usersController.asignarpuntosHistory2);
+  
 
     app.post('/api/login/dashboard', usersController.loginAdminDashboard);
 
